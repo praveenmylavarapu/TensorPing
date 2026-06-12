@@ -3,84 +3,107 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>TensorPing™</title>
+    <title>TensorPing</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app">
       <header class="topbar">
-        <h1>TensorPing™</h1>
+        <h1>TensorPing</h1>
         <p class="subtitle">Decode the hidden 3-step network in 6 actions.</p>
       </header>
 
       <section class="status-panel" aria-live="polite">
-        <div>Actions: <strong id="actions-count">0</strong>/6</div>
-        <div>Final Output: <strong id="final-output">—</strong></div>
+        <div class="status-item">Actions</div>
+        <div class="actions-pill"><strong id="actions-count">0</strong>/6</div>
       </section>
 
-      <section class="network" aria-label="Network path from Node A to Node D">
-        <div class="node" id="node-a">A</div>
-        <div class="line" id="line-1" aria-hidden="true"></div>
-        <div class="node" id="node-b">B</div>
-        <div class="line" id="line-2" aria-hidden="true"></div>
-        <div class="node" id="node-c">C</div>
-        <div class="line" id="line-3" aria-hidden="true"></div>
-        <div class="node" id="node-d">D</div>
-        <div class="packet" id="packet" aria-hidden="true"></div>
-      </section>
-
-      <section class="pulse-controls">
-        <label for="pulse-input">Test Pulse (1-20)</label>
-        <div class="input-row">
-          <input id="pulse-input" type="number" min="1" max="20" inputmode="numeric" value="10" />
-          <button id="pulse-btn" type="button">Pulse</button>
-        </div>
-      </section>
-
-      <section class="guess-panel">
-        <h2>Submit Guess</h2>
-        <div class="guess-grid" id="guess-grid">
-          <div class="guess-slot" data-slot="0">
-            <select class="op-select" aria-label="Operation 1 operator">
-              <option value="+">+</option>
-              <option value="-">-</option>
-              <option value="x">x</option>
-            </select>
-            <select class="num-select" aria-label="Operation 1 number">
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-            </select>
-          </div>
-          <div class="guess-slot" data-slot="1">
-            <select class="op-select" aria-label="Operation 2 operator">
-              <option value="+">+</option>
-              <option value="-">-</option>
-              <option value="x">x</option>
-            </select>
-            <select class="num-select" aria-label="Operation 2 number">
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-            </select>
-          </div>
-          <div class="guess-slot" data-slot="2">
-            <select class="op-select" aria-label="Operation 3 operator">
-              <option value="+">+</option>
-              <option value="-">-</option>
-              <option value="x">x</option>
-            </select>
-            <select class="num-select" aria-label="Operation 3 number">
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-            </select>
+      <section class="network-card" aria-label="Network play area">
+        <div class="io-panel left-io">
+          <label for="pulse-input">Test Pulse @ Node A</label>
+          <div class="input-row">
+            <input id="pulse-input" type="number" min="1" max="20" inputmode="numeric" value="10" />
+            <button id="pulse-btn" type="button">Pulse</button>
           </div>
         </div>
-        <button id="guess-btn" type="button">Submit Guess</button>
+
+        <div class="io-panel right-io">
+          <span class="output-label">Final Output @ Node D</span>
+          <div id="final-output" class="output-value">—</div>
+        </div>
+
+        <section class="network" aria-label="Network path from Node A to Node D">
+          <div class="node" id="node-a">A</div>
+          <div class="line" id="line-1" aria-hidden="true"></div>
+          <div class="node" id="node-b">B</div>
+          <div class="line" id="line-2" aria-hidden="true"></div>
+          <div class="node" id="node-c">C</div>
+          <div class="line" id="line-3" aria-hidden="true"></div>
+          <div class="node" id="node-d">D</div>
+          <div class="packet" id="packet" aria-hidden="true"></div>
+        </section>
+
+        <section class="guess-panel" aria-label="Guess the 3 operations">
+          <div class="guess-map" id="guess-grid">
+            <div class="guess-slot line-slot-1" data-slot="0">
+              <select class="op-select" aria-label="Operation 1 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select" aria-label="Operation 1 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div class="guess-slot line-slot-2" data-slot="1">
+              <select class="op-select" aria-label="Operation 2 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select" aria-label="Operation 2 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div class="guess-slot line-slot-3" data-slot="2">
+              <select class="op-select" aria-label="Operation 3 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select" aria-label="Operation 3 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <button id="guess-btn" type="button">Submit Guess</button>
+        </section>
       </section>
 
       <p id="message" class="message" aria-live="polite"></p>
+
+      <section class="history-panel" aria-live="polite">
+        <h2>Timeline</h2>
+        <div id="history-list" class="history-list"></div>
+      </section>
     </main>
 
     <footer class="footer">© 2026 GitHub Copilot. All Rights Reserved.</footer>
 
     <dialog id="result-modal">
-      <h3 id="result-title">TensorPing™</h3>
+      <h3 id="result-title">TensorPing</h3>
       <p id="result-summary"></p>
       <div class="modal-actions">
         <button id="share-btn" type="button">Share Score</button>

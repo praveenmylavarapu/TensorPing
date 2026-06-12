@@ -12,12 +12,14 @@ const FEEDBACK_TO_EMOJI = {
 
 const elements = {
   actionsCount: document.getElementById('actions-count'),
+  actionsPill: document.querySelector('.actions-pill'),
   finalOutput: document.getElementById('final-output'),
   pulseInput: document.getElementById('pulse-input'),
   pulseBtn: document.getElementById('pulse-btn'),
   guessBtn: document.getElementById('guess-btn'),
   message: document.getElementById('message'),
   guessSlots: Array.from(document.querySelectorAll('.guess-slot')),
+  historyList: document.getElementById('history-list'),
   lines: [
     document.getElementById('line-1'),
     document.getElementById('line-2'),
@@ -42,6 +44,7 @@ const state = {
   isAnimating: false,
   isGameOver: false,
   history: [],
+  pulseObservations: [],
   dailyKey: getDateKey(),
   secretOps: [],
 };
@@ -97,7 +100,7 @@ function applyOperation(input, operation) {
 }
 
 function runSequence(input, sequence = state.secretOps) {
-  return sequence.reduce((total, op) => applyOperation(total, op), input);
+  return sequence.reduce((total, operation) => applyOperation(total, operation), input);
 }
 
 async function handlePulse() {
@@ -110,13 +113,19 @@ async function handlePulse() {
   }
 
   beginAction();
-  state.history.push({ type: 'pulse' });
   setMessage('Pulse launched...');
   elements.finalOutput.textContent = '...';
+
   const finalValue = runSequence(inputValue);
   await animatePulseAcrossNetwork();
+
+  const pulseEntry = { type: 'pulse', input: inputValue, output: finalValue };
+  state.pulseObservations.push({ input: inputValue, output: finalValue });
+  state.history.push(pulseEntry);
+  addHistoryRow(pulseEntry);
+
   elements.finalOutput.textContent = String(finalValue);
-  setMessage('Only the final output was revealed.');
+  setMessage('Output captured at Node D.');
   endAction();
 }
 
@@ -125,6 +134,16 @@ function getCurrentGuess() {
     op: slot.querySelector('.op-select').value,
     value: Number(slot.querySelector('.num-select').value),
   }));
+}
+
+function validateGuessAgainstPulses(guess) {
+  return state.pulseObservations
+    .map((pulse) => ({
+      input: pulse.input,
+      expected: pulse.output,
+      guessed: runSequence(pulse.input, guess),
+    }))
+    .filter((result) => result.guessed !== result.expected);
 }
 
 function evaluateGuess(guess, answer) {
@@ -142,6 +161,7 @@ function evaluateGuess(guess, answer) {
 
   for (let i = 0; i < guess.length; i += 1) {
     if (guessUsed[i]) continue;
+
     for (let j = 0; j < answer.length; j += 1) {
       if (answerUsed[j]) continue;
       if (guess[i].op === answer[j].op && guess[i].value === answer[j].value) {
@@ -167,11 +187,25 @@ function applySlotFeedback(feedback) {
 function handleGuessSubmit() {
   if (!canUseAction()) return;
 
-  beginAction();
   const guess = getCurrentGuess();
+  const mismatches = validateGuessAgainstPulses(guess);
+
+  if (mismatches.length > 0) {
+    const mismatch = mismatches[0];
+    elements.finalOutput.textContent = String(mismatch.guessed);
+    setMessage(
+      `Guess not accepted: for pulse ${mismatch.input}, recorded output is ${mismatch.expected} but this guess gives ${mismatch.guessed}.`
+    );
+    return;
+  }
+
+  beginAction();
   const feedback = evaluateGuess(guess, state.secretOps);
   applySlotFeedback(feedback);
-  state.history.push({ type: 'guess', feedback: [...feedback] });
+
+  const guessEntry = { type: 'guess', feedback: [...feedback] };
+  state.history.push(guessEntry);
+  addHistoryRow(guessEntry);
 
   const solved = feedback.every((status) => status === 'correct');
   if (solved) {
@@ -180,13 +214,32 @@ function handleGuessSubmit() {
     return;
   }
 
-  setMessage('Not solved yet. Refine and try again.');
+  setMessage('Guess accepted. Keep deducing.');
   endAction();
+}
+
+function addHistoryRow(entry) {
+  const row = document.createElement('div');
+  row.className = 'history-row';
+
+  if (entry.type === 'pulse') {
+    row.innerHTML = `<span>⚡ Pulse ${entry.input}</span><strong>${entry.output}</strong>`;
+  } else {
+    row.classList.add('history-guess');
+    entry.feedback.forEach((status) => {
+      const chip = document.createElement('span');
+      chip.className = `history-chip ${status}`;
+      chip.textContent = FEEDBACK_TO_EMOJI[status];
+      row.appendChild(chip);
+    });
+  }
+
+  elements.historyList.prepend(row);
 }
 
 function canUseAction() {
   if (state.isGameOver) {
-    setMessage('Game over. Start again tomorrow for a new TensorPing™ puzzle.');
+    setMessage('Game over. Start again tomorrow for a new TensorPing puzzle.');
     return false;
   }
   if (state.isAnimating) return false;
@@ -215,6 +268,7 @@ function toggleControls(enabled) {
   elements.pulseBtn.disabled = !enabled;
   elements.guessBtn.disabled = !enabled;
   elements.pulseInput.disabled = !enabled;
+
   elements.guessSlots.forEach((slot) => {
     slot.querySelectorAll('select').forEach((select) => {
       select.disabled = !enabled;
@@ -224,6 +278,8 @@ function toggleControls(enabled) {
 
 function updateActionUI() {
   elements.actionsCount.textContent = String(state.actionsUsed);
+  elements.actionsPill.classList.remove('bump');
+  window.requestAnimationFrame(() => elements.actionsPill.classList.add('bump'));
 }
 
 function setMessage(text) {
@@ -240,14 +296,13 @@ async function animatePulseAcrossNetwork() {
   ];
 
   const networkRect = document.querySelector('.network').getBoundingClientRect();
-
   placePacket(pathStops[0], networkRect);
-  await wait(120);
+  await wait(100);
 
   for (let i = 0; i < elements.lines.length; i += 1) {
     elements.lines[i].classList.add('active');
     placePacket(pathStops[i + 1], networkRect);
-    await wait(460);
+    await wait(450);
     elements.lines[i].classList.remove('active');
   }
 
@@ -272,17 +327,12 @@ function getPuzzleNumber() {
 }
 
 function buildShareText() {
-  const lines = state.history.map((entry) => {
+  const rows = state.history.map((entry) => {
     if (entry.type === 'pulse') return '⚡';
     return entry.feedback.map((status) => FEEDBACK_TO_EMOJI[status]).join(' ');
   });
 
-  return [
-    `TensorPing™ #${getPuzzleNumber()}`,
-    `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`,
-    ...lines,
-    `Play at ${window.location.href}`,
-  ].join('\n');
+  return [`TensorPing #${getPuzzleNumber()}`, `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`, ...rows, `Play at ${window.location.href}`].join('\n');
 }
 
 async function shareScore() {
@@ -301,10 +351,12 @@ function endGame(isWin) {
   toggleControls(false);
 
   const secret = state.secretOps.map((step) => `[${step.op}${step.value}]`).join(' ');
-  elements.resultTitle.textContent = isWin ? 'TensorPing™ Solved' : 'TensorPing™ Complete';
+  elements.resultTitle.textContent = isWin ? 'TensorPing Solved' : 'TensorPing Complete';
   elements.resultSummary.textContent = isWin
     ? `You solved it in ${state.actionsUsed}/${MAX_ACTIONS} actions.`
     : `Out of actions. Daily sequence: ${secret}`;
 
-  if (!elements.modal.open) elements.modal.showModal();
+  if (!elements.modal.open) {
+    elements.modal.showModal();
+  }
 }
