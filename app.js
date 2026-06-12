@@ -437,7 +437,7 @@ function buildShareText() {
   });
 
   return [
-    `TensorPing™ #${getPuzzleNumber()}`,
+    `TensorPing #${getPuzzleNumber()}`,
     `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`,
     ...historyLines,
     `Play at ${window.location.href}`
