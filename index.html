@@ -7,7 +7,7 @@
     <!-- Fonts and Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=1.0.2" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <!-- TopAppBar -->
@@ -29,22 +29,27 @@
           <!-- SVG Network Connections -->
           <svg class="network-lines-svg" preserveAspectRatio="none" viewBox="0 0 100 100">
             <!-- Background Static Connections -->
-            <path class="network-line-bg" d="M 15 15 L 85 40" fill="none"></path>
-            <path class="network-line-bg" d="M 85 40 L 15 65" fill="none"></path>
-            <path class="network-line-bg" d="M 15 65 L 85 85" fill="none"></path>
+            <path class="network-line-bg" d="M 10 50 L 36.6 50" fill="none"></path>
+            <path class="network-line-bg" d="M 36.6 50 L 63.3 50" fill="none"></path>
+            <path class="network-line-bg" d="M 63.3 50 L 90 50" fill="none"></path>
 
             <!-- Active Animating Paths -->
-            <path id="line-1" class="network-line" d="M 15 15 L 85 40" fill="none"></path>
-            <path id="line-2" class="network-line" d="M 85 40 L 15 65" fill="none"></path>
-            <path id="line-3" class="network-line" d="M 15 65 L 85 85" fill="none"></path>
+            <path id="line-1" class="network-line" d="M 10 50 L 36.6 50" fill="none"></path>
+            <path id="line-2" class="network-line" d="M 36.6 50 L 63.3 50" fill="none"></path>
+            <path id="line-3" class="network-line" d="M 63.3 50 L 90 50" fill="none"></path>
           </svg>
 
+          <!-- OP Labels on Lines -->
+          <div class="op-label" style="left: 23.3%;">OP 1</div>
+          <div class="op-label" style="left: 50.0%;">OP 2</div>
+          <div class="op-label" style="left: 76.6%;">OP 3</div>
+
           <!-- Nodes A, B, C, D -->
-          <div class="node" id="node-a">N1</div>
-          <div class="node" id="node-b">N2</div>
-          <div class="node" id="node-c">N3</div>
-          <div class="node" id="node-d">N4</div>
-          <div id="final-output" style="position: absolute; top: 85%; left: 85%; transform: translate(-50%, 28px); color: var(--secondary-glow); font-family: var(--font-mono); font-weight: 700; font-size: 13px; z-index: 20; text-shadow: 0 0 10px rgba(254, 0, 254, 0.4);">—</div>
+          <div class="node" id="node-a">IN</div>
+          <div class="node" id="node-b">H1</div>
+          <div class="node" id="node-c">H2</div>
+          <div class="node" id="node-d">OUT</div>
+          <div id="final-output" style="display: none;"></div>
 
           <!-- Pulsing Signal Packet -->
           <div class="packet" id="packet" aria-hidden="true"></div>
@@ -78,7 +83,28 @@
       <div id="content-pulse" class="tab-content active">
         <div class="input-group">
           <label class="label-caps input-label" for="pulse-input">Value (1-20)</label>
-          <input id="pulse-input" class="cyber-input" type="number" min="1" max="20" inputmode="numeric" value="10" />
+          <select id="pulse-input" class="cyber-input" aria-label="Pulse input value">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10" selected>10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+          </select>
         </div>
         <button id="pulse-btn" class="btn-primary" type="button">
           <span class="material-symbols-outlined">radar</span>
@@ -156,10 +182,10 @@
       <div class="dialog-tag">_SYS-HELP-01</div>
       <h3>TENSORPING RULES</h3>
       <div class="help-content">
-        <p>TensorPing is a daily logic puzzle where you deduce a secret mathematical network connecting Node N1 to Node N4 through Nodes N2 and N3.</p>
+        <p>TensorPing is a daily logic puzzle where you deduce a secret mathematical network connecting Node IN to Node OUT through Nodes H1 and H2.</p>
         <p>You have <strong>6 actions</strong> to solve the puzzle. You can perform two types of actions:</p>
-        <p><strong>1. SEND PULSE:</strong> Fire a numerical test value (1-20) from Node N1. Watch the signal travel and read the final output at Node N4. This consumes 1 action.</p>
-        <p><strong>2. SUBMIT GUESS:</strong> Guess the three mathematical operations between N1 &rarr; N2, N2 &rarr; N3, and N3 &rarr; N4. This consumes 1 action.</p>
+        <p><strong>1. SEND PULSE:</strong> Fire a numerical test value (1-20) from Node IN. Watch the signal travel and read the final output at Node OUT. This consumes 1 action.</p>
+        <p><strong>2. SUBMIT GUESS:</strong> Guess the three mathematical operations for the connections: OP 1 (IN &rarr; H1), OP 2 (H1 &rarr; H2), and OP 3 (H2 &rarr; OUT). This consumes 1 action.</p>
         <p><strong>FEEDBACK CHIPS:</strong> After submitting a guess, you will receive feedback status colors on your operations:</p>
         <div class="help-feedback-desc">
           <div class="help-desc-row">
@@ -212,6 +238,6 @@
       </div>
     </dialog>
 
-    <script src="app.js?v=1.0.2"></script>
+    <script src="app.js"></script>
   </body>
 </html>

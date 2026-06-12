@@ -63,17 +63,17 @@ initialize();
 function initialize() {
   state.secretOps = generateDailySequence(state.dailyKey);
   updateActionUI();
-  
+
   // Event listeners
   elements.pulseBtn.addEventListener('click', handlePulse);
   elements.guessBtn.addEventListener('click', handleGuessSubmit);
   elements.shareBtn.addEventListener('click', shareScore);
   elements.closeModalBtn.addEventListener('click', () => elements.modal.close());
-  
+
   // Tab switching
   elements.tabPulse.addEventListener('click', () => switchTab('pulse'));
   elements.tabGuess.addEventListener('click', () => switchTab('guess'));
-  
+
   // Help Modal listeners
   elements.helpBtn.addEventListener('click', () => elements.helpModal.showModal());
   elements.closeHelpBtn.addEventListener('click', () => elements.helpModal.close());
@@ -106,11 +106,11 @@ function updateCountdown() {
   const now = new Date();
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const diff = midnight - now;
-  
+
   const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
   const minutes = String(Math.floor((diff / (1000 * 60)) % 60)).padStart(2, '0');
   const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
-  
+
   const timerEl = document.getElementById('next-puzzle-time');
   if (timerEl) {
     timerEl.textContent = `${hours}:${minutes}:${seconds}`;
@@ -165,13 +165,13 @@ async function handlePulse() {
 
   const inputValue = Number(elements.pulseInput.value);
   if (!Number.isInteger(inputValue) || inputValue < 1 || inputValue > 20) {
-    setMessage('Enter a whole number from 1 to 20.', true);
+    setMessage('Enter a whole number from 1 to 20', true);
     return;
   }
 
   const alreadyObserved = state.pulseObservations.some((obs) => obs.input === inputValue);
   if (alreadyObserved) {
-    setMessage(`Value ${inputValue} has already been pulsed.`, true);
+    setMessage(`Value ${inputValue} has already been pulsed`, true);
     return;
   }
 
@@ -183,19 +183,19 @@ async function handlePulse() {
   await animatePulseAcrossNetwork();
 
   state.pulseCount += 1;
-  const pulseEntry = { 
-    type: 'pulse', 
-    input: inputValue, 
+  const pulseEntry = {
+    type: 'pulse',
+    input: inputValue,
     output: finalValue,
     index: state.pulseCount
   };
-  
+
   state.pulseObservations.push({ input: inputValue, output: finalValue });
   state.history.push(pulseEntry);
   addHistoryRow(pulseEntry);
 
   elements.finalOutput.textContent = String(finalValue);
-  setMessage('Output captured at Node N4.');
+  setMessage('Signal returned! Scan details logged');
   endAction();
 }
 
@@ -258,13 +258,23 @@ function handleGuessSubmit() {
   if (!canUseAction()) return;
 
   const guess = getCurrentGuess();
+
+  const alreadyGuessed = state.history.some((entry) => {
+    if (entry.type !== 'guess') return false;
+    return entry.guess.every((g, idx) => g.op === guess[idx].op && g.value === guess[idx].value);
+  });
+  if (alreadyGuessed) {
+    setMessage('This guess has already been submitted', true);
+    return;
+  }
+
   const mismatches = validateGuessAgainstPulses(guess);
 
   if (mismatches.length > 0) {
     const mismatch = mismatches[0];
     elements.finalOutput.textContent = String(mismatch.guessed);
     setMessage(
-      `Guess rejected: for input ${mismatch.input}, expected output is ${mismatch.expected} but guess yields ${mismatch.guessed}.`,
+      `Guess rejected: for input ${mismatch.input}, expected output is ${mismatch.expected} but guess yields ${mismatch.guessed}`,
       true
     );
     return;
@@ -275,19 +285,19 @@ function handleGuessSubmit() {
   applySlotFeedback(feedback);
 
   state.guessCount += 1;
-  const guessEntry = { 
-    type: 'guess', 
+  const guessEntry = {
+    type: 'guess',
     feedback: [...feedback],
     guess: guess,
     index: state.guessCount
   };
-  
+
   state.history.push(guessEntry);
   addHistoryRow(guessEntry);
 
   const solved = feedback.every((status) => status === 'correct');
   if (solved) {
-    setMessage('System breached.');
+    setMessage('System breached');
     endGame(true);
     return;
   }
@@ -299,26 +309,26 @@ function handleGuessSubmit() {
 function getFeedbackMessage(feedback) {
   const correctCount = feedback.filter((status) => status === 'correct').length;
   const presentCount = feedback.filter((status) => status === 'present').length;
-  
+
   if (correctCount === 2) {
-    return 'So close! I can hear the mainframe sweating.';
+    return 'So close! I can hear the mainframe sweating!';
   }
   if (correctCount === 1 && presentCount === 2) {
-    return 'You have all the right operations! Just shuffle their positions.';
+    return 'You have all the right operations! Just shuffle their positions!';
   }
   if (correctCount === 0 && presentCount === 3) {
-    return 'Oh, the irony! All the right keys, but in all the wrong locks.';
+    return 'Oh, the irony! All the right keys, but in all the wrong locks!';
   }
   if (correctCount === 0 && presentCount === 0) {
-    return 'Oof. Absolute void. Are we even hacking the same network?';
+    return 'Absolute void. Are we even hacking the same network?';
   }
   if (correctCount === 1) {
-    return 'A flicker of connection! We\'re breaking through.';
+    return 'A flicker of connection! We\'re breaking through!';
   }
   if (presentCount > 0) {
-    return 'Faint echoes. Frequencies exist but in the wrong order.';
+    return 'Faint echoes. Frequencies exist but in the wrong order';
   }
-  return 'Guess accepted. Keep deducing, agent.';
+  return 'Guess accepted. Keep deducing, agent!';
 }
 
 function addHistoryRow(entry) {
@@ -355,7 +365,7 @@ function addHistoryRow(entry) {
 
 function canUseAction() {
   if (state.isGameOver) {
-    setMessage('Game over. Start again tomorrow for a new puzzle.', false);
+    setMessage('Game over. Start again tomorrow for a new puzzle', false);
     return false;
   }
   if (state.isAnimating) return false;
@@ -429,7 +439,7 @@ async function animatePulseAcrossNetwork() {
     placePacket(pathStops[i + 1], networkRect);
     await wait(450);
     elements.lines[i].classList.remove('active');
-    
+
     // Flash corresponding node when packet lands on it
     const nodeIndex = i + 1;
     elements.nodes[nodeIndex].classList.add('pulse-node');
@@ -485,9 +495,9 @@ async function shareScore() {
   const text = buildShareText();
   try {
     await navigator.clipboard.writeText(text);
-    setMessage('Score copied to clipboard.');
+    setMessage('Score copied to clipboard');
   } catch (error) {
-    setMessage('Copy failed. You can copy the score manually.');
+    setMessage('Copy failed. You can copy the score manually');
   }
 }
 
@@ -498,10 +508,10 @@ function endGame(isWin) {
 
   const secret = state.secretOps.map((step) => `[${step.op}${step.value}]`).join(' ');
   elements.resultTitle.textContent = isWin ? 'SYSTEM BREACH SUCCESSFUL' : 'SYSTEM LOCKOUT';
-  elements.resultSummary.textContent = isWin
-    ? 'Encryption key retrieved and decoded.'
-    : 'Maximum attempts exceeded. Daily sequence encrypted.';
-    
+  elements.resultSummary.innerHTML = isWin
+    ? 'Encryption key retrieved and decoded'
+    : 'Maximum attempts exceeded<br>Daily sequence encrypted';
+
   elements.resultActions.textContent = `${state.actionsUsed}/${MAX_ACTIONS}`;
   elements.resultSequence.textContent = secret;
 

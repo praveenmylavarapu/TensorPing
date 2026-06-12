@@ -218,7 +218,7 @@ h1, h2, h3 {
 .network-card {
   position: relative;
   width: 100%;
-  height: 300px;
+  height: 120px;
   margin-top: var(--space-xs);
   display: flex;
   align-items: center;
@@ -292,8 +292,8 @@ h1, h2, h3 {
 }
 
 #node-a {
-  top: 15%;
-  left: 15%;
+  top: 50%;
+  left: 10%;
   transform: translate(-50%, -50%);
   border-color: var(--primary-glow);
   color: var(--primary-glow);
@@ -301,24 +301,37 @@ h1, h2, h3 {
 }
 
 #node-b {
-  top: 40%;
-  left: 85%;
+  top: 50%;
+  left: 36.6%;
   transform: translate(-50%, -50%);
 }
 
 #node-c {
-  top: 65%;
-  left: 15%;
+  top: 50%;
+  left: 63.3%;
   transform: translate(-50%, -50%);
 }
 
 #node-d {
-  top: 85%;
-  left: 85%;
+  top: 50%;
+  left: 90%;
   transform: translate(-50%, -50%);
   border-color: var(--secondary-glow);
   color: var(--secondary-glow);
   box-shadow: 0 0 15px rgba(254, 0, 254, 0.25);
+}
+
+.op-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -34px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  z-index: 5;
 }
 
 .node.pulse-node {
@@ -552,7 +565,12 @@ h1, h2, h3 {
   font-weight: 500;
   padding: 12px var(--space-md);
   text-align: center;
+  text-align-last: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
 .cyber-input:focus {
