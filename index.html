@@ -1,113 +1,212 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>TensorPing</title>
+    <title>TensorPing™</title>
+    <!-- Fonts and Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- TopAppBar -->
+    <header class="topbar">
+      <button id="help-btn" aria-label="Help" class="help-btn" type="button">
+        <span class="material-symbols-outlined">help</span>
+      </button>
+      <h1>TensorPing™</h1>
+      <div class="actions-pill-container">
+        <span class="material-symbols-outlined">bolt</span>
+        <span class="actions-pill"><strong id="actions-count">0</strong>/6</span>
+      </div>
+    </header>
+
     <main class="app">
-      <header class="topbar">
-        <h1>TensorPing</h1>
-        <p class="subtitle">Decode the hidden 3-step network in 6 actions.</p>
-      </header>
+      <!-- Network Section (Zig-Zag Diagram) -->
+      <section class="network-card glass-panel" aria-label="Network Diagram">
+        <div class="network">
+          <!-- SVG Network Connections -->
+          <svg class="network-lines-svg" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <!-- Background Static Connections -->
+            <path class="network-line-bg" d="M 15 15 L 85 40" fill="none"></path>
+            <path class="network-line-bg" d="M 85 40 L 15 65" fill="none"></path>
+            <path class="network-line-bg" d="M 15 65 L 85 85" fill="none"></path>
 
-      <section class="status-panel" aria-live="polite">
-        <div class="status-item">Actions</div>
-        <div class="actions-pill"><strong id="actions-count">0</strong>/6</div>
-      </section>
+            <!-- Active Animating Paths -->
+            <path id="line-1" class="network-line" d="M 15 15 L 85 40" fill="none"></path>
+            <path id="line-2" class="network-line" d="M 85 40 L 15 65" fill="none"></path>
+            <path id="line-3" class="network-line" d="M 15 65 L 85 85" fill="none"></path>
+          </svg>
 
-      <section class="network-card" aria-label="Network play area">
-        <div class="io-panel left-io">
-          <label for="pulse-input">Test Pulse @ Node A</label>
-          <div class="input-row">
-            <input id="pulse-input" type="number" min="1" max="20" inputmode="numeric" value="10" />
-            <button id="pulse-btn" type="button">Pulse</button>
-          </div>
-        </div>
+          <!-- Nodes A, B, C, D -->
+          <div class="node" id="node-a">N1</div>
+          <div class="node" id="node-b">N2</div>
+          <div class="node" id="node-c">N3</div>
+          <div class="node" id="node-d">N4</div>
+          <div id="final-output" style="position: absolute; top: 85%; left: 85%; transform: translate(-50%, 28px); color: var(--secondary-glow); font-family: var(--font-mono); font-weight: 700; font-size: 13px; z-index: 20; text-shadow: 0 0 10px rgba(254, 0, 254, 0.4);">—</div>
 
-        <div class="io-panel right-io">
-          <span class="output-label">Final Output @ Node D</span>
-          <div id="final-output" class="output-value">—</div>
-        </div>
-
-        <section class="network" aria-label="Network path from Node A to Node D">
-          <div class="node" id="node-a">A</div>
-          <div class="line" id="line-1" aria-hidden="true"></div>
-          <div class="node" id="node-b">B</div>
-          <div class="line" id="line-2" aria-hidden="true"></div>
-          <div class="node" id="node-c">C</div>
-          <div class="line" id="line-3" aria-hidden="true"></div>
-          <div class="node" id="node-d">D</div>
+          <!-- Pulsing Signal Packet -->
           <div class="packet" id="packet" aria-hidden="true"></div>
-        </section>
-
-        <section class="guess-panel" aria-label="Guess the 3 operations">
-          <div class="guess-map" id="guess-grid">
-            <div class="guess-slot line-slot-1" data-slot="0">
-              <select class="op-select" aria-label="Operation 1 operator">
-                <option value="+">+</option>
-                <option value="-">-</option>
-                <option value="x">x</option>
-              </select>
-              <select class="num-select" aria-label="Operation 1 number">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </div>
-            <div class="guess-slot line-slot-2" data-slot="1">
-              <select class="op-select" aria-label="Operation 2 operator">
-                <option value="+">+</option>
-                <option value="-">-</option>
-                <option value="x">x</option>
-              </select>
-              <select class="num-select" aria-label="Operation 2 number">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </div>
-            <div class="guess-slot line-slot-3" data-slot="2">
-              <select class="op-select" aria-label="Operation 3 operator">
-                <option value="+">+</option>
-                <option value="-">-</option>
-                <option value="x">x</option>
-              </select>
-              <select class="num-select" aria-label="Operation 3 number">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </div>
-          </div>
-          <button id="guess-btn" type="button">Submit Guess</button>
-        </section>
+        </div>
       </section>
 
+      <!-- Message / Alert Overlay -->
       <p id="message" class="message" aria-live="polite"></p>
 
+      <!-- Feedback Log (Timeline) -->
       <section class="history-panel" aria-live="polite">
-        <h2>Timeline</h2>
+        <h2>Feedback Log</h2>
         <div id="history-list" class="history-list"></div>
       </section>
     </main>
 
-    <footer class="footer">© 2026 Sai Praveen Mylavarapu. All Rights Reserved.</footer>
+    <!-- Footer -->
+    <footer class="footer">
+      © 2026 Sai Praveen Mylavarapu. All Rights Reserved.
+    </footer>
 
+    <!-- Control Deck (Bottom Interaction Sheet) -->
+    <div class="control-deck glass-panel">
+      <!-- Tabs -->
+      <div class="control-deck-tabs">
+        <button id="tab-pulse" class="deck-tab-btn active" type="button">SEND PULSE</button>
+        <button id="tab-guess" class="deck-tab-btn" type="button">SUBMIT GUESS</button>
+      </div>
+
+      <!-- Tab Content: Send Pulse -->
+      <div id="content-pulse" class="tab-content active">
+        <div class="input-group">
+          <label class="label-caps input-label" for="pulse-input">Value (1-20)</label>
+          <input id="pulse-input" class="cyber-input" type="number" min="1" max="20" inputmode="numeric" value="10" />
+        </div>
+        <button id="pulse-btn" class="btn-primary" type="button">
+          <span class="material-symbols-outlined">radar</span>
+          FIRE PULSE
+        </button>
+      </div>
+
+      <!-- Tab Content: Submit Guess -->
+      <div id="content-guess" class="tab-content">
+        <div class="guess-slots-row" id="guess-grid">
+          <!-- Operation Slot 1 -->
+          <div class="guess-slot guess-slot-box" data-slot="0">
+            <span class="label-caps text-center" style="display: block; margin-bottom: 4px;">OP 1</span>
+            <div class="guess-select-container">
+              <select class="op-select cyber-select" aria-label="Operation 1 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select cyber-select" aria-label="Operation 1 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <!-- Operation Slot 2 -->
+          <div class="guess-slot guess-slot-box" data-slot="1">
+            <span class="label-caps text-center" style="display: block; margin-bottom: 4px;">OP 2</span>
+            <div class="guess-select-container">
+              <select class="op-select cyber-select" aria-label="Operation 2 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select cyber-select" aria-label="Operation 2 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <!-- Operation Slot 3 -->
+          <div class="guess-slot guess-slot-box" data-slot="2">
+            <span class="label-caps text-center" style="display: block; margin-bottom: 4px;">OP 3</span>
+            <div class="guess-select-container">
+              <select class="op-select cyber-select" aria-label="Operation 3 operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="x">x</option>
+              </select>
+              <select class="num-select cyber-select" aria-label="Operation 3 number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button id="guess-btn" class="btn-primary" type="button">
+          <span class="material-symbols-outlined">terminal</span>
+          SUBMIT GUESS
+        </button>
+      </div>
+    </div>
+
+    <!-- Help Modal Dialog -->
+    <dialog id="help-modal">
+      <div class="dialog-tag">_SYS-HELP-01</div>
+      <h3>TENSORPING RULES</h3>
+      <div class="help-content">
+        <p>TensorPing™ is a daily logic puzzle where you deduce a secret mathematical network connecting Node N1 to Node N4 through Nodes N2 and N3.</p>
+        <p>You have <strong>6 actions</strong> to solve the puzzle. You can perform two types of actions:</p>
+        <p><strong>1. SEND PULSE:</strong> Fire a numerical test value (1-20) from Node N1. Watch the signal travel and read the final output at Node N4. This consumes 1 action.</p>
+        <p><strong>2. SUBMIT GUESS:</strong> Guess the three mathematical operations between N1 &rarr; N2, N2 &rarr; N3, and N3 &rarr; N4. This consumes 1 action.</p>
+        <p><strong>FEEDBACK CHIPS:</strong> After submitting a guess, you will receive feedback status colors on your operations:</p>
+        <div class="help-feedback-desc">
+          <div class="help-desc-row">
+            <div class="chip-demo correct">CYAN</div>
+            <span>Operation and number are correct and at the correct step.</span>
+          </div>
+          <div class="help-desc-row">
+            <div class="chip-demo present">MAGENTA</div>
+            <span>Operation and number are correct but belong at a different step.</span>
+          </div>
+          <div class="help-desc-row">
+            <div class="chip-demo absent">GREY</div>
+            <span>Operation or number does not exist in the secret network.</span>
+          </div>
+        </div>
+        <p>Your guess will only be accepted if it matches all your previously recorded pulses.</p>
+      </div>
+      <button id="close-help-btn" class="btn-secondary" type="button">CLOSE</button>
+    </dialog>
+
+    <!-- Game Over / Result Modal Dialog -->
     <dialog id="result-modal">
-      <h3 id="result-title">TensorPing</h3>
+      <div class="dialog-tag">_SYS-TERM-01</div>
+      <h1 id="result-title">SYSTEM BREACH SUCCESSFUL</h1>
       <p id="result-summary"></p>
-      <div class="modal-actions">
-        <button id="share-btn" type="button">Share Score</button>
-        <button id="close-modal-btn" type="button">Close</button>
+      
+      <div class="result-table">
+        <div class="result-decor-bottom"></div>
+        <div class="result-row">
+          <span class="result-row-label">ACTIONS_USED</span>
+          <span id="result-actions" class="result-row-value cyan-txt">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-row-label">SECRET_SEQUENCE</span>
+          <span id="result-sequence" class="result-row-value magenta-txt">—</span>
+        </div>
+      </div>
+
+      <button id="share-btn" class="btn-primary" type="button">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">content_copy</span>
+        COPY SCORE
+      </button>
+      <button id="close-modal-btn" class="btn-secondary" type="button">CLOSE</button>
+      
+      <div class="next-puzzle-timer">
+        <span class="label-caps">NEXT_PUZZLE_IN</span>
+        <span id="next-puzzle-time" class="timer-val">23:14:02</span>
       </div>
     </dialog>
 

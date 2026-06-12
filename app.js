@@ -4,11 +4,6 @@
  */
 const MAX_ACTIONS = 6;
 const OPERATORS = ['+', '-', 'x'];
-const FEEDBACK_TO_EMOJI = {
-  correct: '🟦',
-  present: '🟪',
-  absent: '⬛',
-};
 
 const elements = {
   actionsCount: document.getElementById('actions-count'),
@@ -35,8 +30,19 @@ const elements = {
   modal: document.getElementById('result-modal'),
   resultTitle: document.getElementById('result-title'),
   resultSummary: document.getElementById('result-summary'),
+  resultActions: document.getElementById('result-actions'),
+  resultSequence: document.getElementById('result-sequence'),
   shareBtn: document.getElementById('share-btn'),
   closeModalBtn: document.getElementById('close-modal-btn'),
+
+  // New tab and modal elements
+  tabPulse: document.getElementById('tab-pulse'),
+  tabGuess: document.getElementById('tab-guess'),
+  contentPulse: document.getElementById('content-pulse'),
+  contentGuess: document.getElementById('content-guess'),
+  helpBtn: document.getElementById('help-btn'),
+  helpModal: document.getElementById('help-modal'),
+  closeHelpBtn: document.getElementById('close-help-btn'),
 };
 
 const state = {
@@ -47,6 +53,8 @@ const state = {
   pulseObservations: [],
   dailyKey: getDateKey(),
   secretOps: [],
+  pulseCount: 0,
+  guessCount: 0,
 };
 
 initialize();
@@ -54,10 +62,58 @@ initialize();
 function initialize() {
   state.secretOps = generateDailySequence(state.dailyKey);
   updateActionUI();
+  
+  // Event listeners
   elements.pulseBtn.addEventListener('click', handlePulse);
   elements.guessBtn.addEventListener('click', handleGuessSubmit);
   elements.shareBtn.addEventListener('click', shareScore);
   elements.closeModalBtn.addEventListener('click', () => elements.modal.close());
+  
+  // Tab switching
+  elements.tabPulse.addEventListener('click', () => switchTab('pulse'));
+  elements.tabGuess.addEventListener('click', () => switchTab('guess'));
+  
+  // Help Modal listeners
+  elements.helpBtn.addEventListener('click', () => elements.helpModal.showModal());
+  elements.closeHelpBtn.addEventListener('click', () => elements.helpModal.close());
+  elements.helpModal.addEventListener('click', (e) => {
+    if (e.target === elements.helpModal) {
+      elements.helpModal.close();
+    }
+  });
+
+  // Countdown timer init
+  updateCountdown();
+  window.setInterval(updateCountdown, 1000);
+}
+
+function switchTab(tab) {
+  if (tab === 'pulse') {
+    elements.tabPulse.classList.add('active');
+    elements.tabGuess.classList.remove('active');
+    elements.contentPulse.classList.add('active');
+    elements.contentGuess.classList.remove('active');
+  } else {
+    elements.tabGuess.classList.add('active');
+    elements.tabPulse.classList.remove('active');
+    elements.contentGuess.classList.add('active');
+    elements.contentPulse.classList.remove('active');
+  }
+}
+
+function updateCountdown() {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const diff = midnight - now;
+  
+  const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+  const minutes = String(Math.floor((diff / (1000 * 60)) % 60)).padStart(2, '0');
+  const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+  
+  const timerEl = document.getElementById('next-puzzle-time');
+  if (timerEl) {
+    timerEl.textContent = `${hours}:${minutes}:${seconds}`;
+  }
 }
 
 function getDateKey(date = new Date()) {
@@ -108,7 +164,7 @@ async function handlePulse() {
 
   const inputValue = Number(elements.pulseInput.value);
   if (!Number.isInteger(inputValue) || inputValue < 1 || inputValue > 20) {
-    setMessage('Enter a whole number from 1 to 20.');
+    setMessage('Enter a whole number from 1 to 20.', true);
     return;
   }
 
@@ -119,13 +175,20 @@ async function handlePulse() {
   const finalValue = runSequence(inputValue);
   await animatePulseAcrossNetwork();
 
-  const pulseEntry = { type: 'pulse', input: inputValue, output: finalValue };
+  state.pulseCount += 1;
+  const pulseEntry = { 
+    type: 'pulse', 
+    input: inputValue, 
+    output: finalValue,
+    index: state.pulseCount
+  };
+  
   state.pulseObservations.push({ input: inputValue, output: finalValue });
   state.history.push(pulseEntry);
   addHistoryRow(pulseEntry);
 
   elements.finalOutput.textContent = String(finalValue);
-  setMessage('Output captured at Node D.');
+  setMessage('Output captured at Node N4.');
   endAction();
 }
 
@@ -194,7 +257,8 @@ function handleGuessSubmit() {
     const mismatch = mismatches[0];
     elements.finalOutput.textContent = String(mismatch.guessed);
     setMessage(
-      `Guess not accepted: for pulse ${mismatch.input}, recorded output is ${mismatch.expected} but this guess gives ${mismatch.guessed}.`
+      `Guess rejected: for input ${mismatch.input}, expected output is ${mismatch.expected} but guess yields ${mismatch.guessed}.`,
+      true
     );
     return;
   }
@@ -203,7 +267,14 @@ function handleGuessSubmit() {
   const feedback = evaluateGuess(guess, state.secretOps);
   applySlotFeedback(feedback);
 
-  const guessEntry = { type: 'guess', feedback: [...feedback] };
+  state.guessCount += 1;
+  const guessEntry = { 
+    type: 'guess', 
+    feedback: [...feedback],
+    guess: guess,
+    index: state.guessCount
+  };
+  
   state.history.push(guessEntry);
   addHistoryRow(guessEntry);
 
@@ -223,15 +294,28 @@ function addHistoryRow(entry) {
   row.className = 'history-row';
 
   if (entry.type === 'pulse') {
-    row.innerHTML = `<span>⚡ Pulse ${entry.input}</span><strong>${entry.output}</strong>`;
+    row.innerHTML = `
+      <div class="history-index">P${entry.index}</div>
+      <div class="history-pulse-content">
+        <div class="history-pulse-label">
+          <span class="material-symbols-outlined">bolt</span>
+          <span>IN: ${entry.input}</span>
+        </div>
+        <span class="history-pulse-value">OUT: ${entry.output}</span>
+      </div>
+    `;
   } else {
-    row.classList.add('history-guess');
-    entry.feedback.forEach((status) => {
-      const chip = document.createElement('span');
-      chip.className = `history-chip ${status}`;
-      chip.textContent = FEEDBACK_TO_EMOJI[status];
-      row.appendChild(chip);
+    let chipsHtml = '';
+    entry.feedback.forEach((status, i) => {
+      const guessOp = entry.guess ? `${entry.guess[i].op}${entry.guess[i].value}` : '?';
+      chipsHtml += `<div class="history-chip ${status}">${guessOp}</div>`;
     });
+    row.innerHTML = `
+      <div class="history-index">G${entry.index}</div>
+      <div class="history-chips-container">
+        ${chipsHtml}
+      </div>
+    `;
   }
 
   elements.historyList.prepend(row);
@@ -239,7 +323,7 @@ function addHistoryRow(entry) {
 
 function canUseAction() {
   if (state.isGameOver) {
-    setMessage('Game over. Start again tomorrow for a new TensorPing puzzle.');
+    setMessage('Game over. Start again tomorrow for a new puzzle.', false);
     return false;
   }
   if (state.isAnimating) return false;
@@ -282,8 +366,13 @@ function updateActionUI() {
   window.requestAnimationFrame(() => elements.actionsPill.classList.add('bump'));
 }
 
-function setMessage(text) {
+function setMessage(text, isError = false) {
   elements.message.textContent = text;
+  if (isError) {
+    elements.message.classList.add('error');
+  } else {
+    elements.message.classList.remove('error');
+  }
 }
 
 async function animatePulseAcrossNetwork() {
@@ -299,20 +388,31 @@ async function animatePulseAcrossNetwork() {
   placePacket(pathStops[0], networkRect);
   await wait(100);
 
+  // Flash Node A at the start
+  elements.nodes[0].classList.add('pulse-node');
+  setTimeout(() => elements.nodes[0].classList.remove('pulse-node'), 500);
+
   for (let i = 0; i < elements.lines.length; i += 1) {
     elements.lines[i].classList.add('active');
     placePacket(pathStops[i + 1], networkRect);
     await wait(450);
     elements.lines[i].classList.remove('active');
+    
+    // Flash corresponding node when packet lands on it
+    const nodeIndex = i + 1;
+    elements.nodes[nodeIndex].classList.add('pulse-node');
+    setTimeout(() => elements.nodes[nodeIndex].classList.remove('pulse-node'), 500);
   }
 
-  elements.packet.style.transform = 'translate(-999px, -50%)';
+  // Position offscreen
+  elements.packet.style.transform = 'translate(-999px, -999px) translate(-50%, -50%)';
   state.isAnimating = false;
 }
 
 function placePacket(nodeRect, networkRect) {
-  const x = nodeRect.left - networkRect.left + nodeRect.width / 2 - 6;
-  elements.packet.style.transform = `translate(${x}px, -50%)`;
+  const x = nodeRect.left - networkRect.left + nodeRect.width / 2;
+  const y = nodeRect.top - networkRect.top + nodeRect.height / 2;
+  elements.packet.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
 }
 
 function wait(ms) {
@@ -329,20 +429,28 @@ function getPuzzleNumber() {
 function buildShareText() {
   const historyLines = state.history.map((entry) => {
     if (entry.type === 'pulse') return '⚡';
-    return entry.feedback.map((status) => FEEDBACK_TO_EMOJI[status]).join(' ');
+    return entry.feedback.map((status) => {
+      if (status === 'correct') return '🟦';
+      if (status === 'present') return '🟪';
+      return '⬛';
+    }).join(' ');
   });
 
-  return [`TensorPing #${getPuzzleNumber()}`, `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`, ...historyLines, `Play at ${window.location.href}`].join('\n');
+  return [
+    `TensorPing™ #${getPuzzleNumber()}`,
+    `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`,
+    ...historyLines,
+    `Play at ${window.location.href}`
+  ].join('\n');
 }
 
 async function shareScore() {
   const text = buildShareText();
   try {
     await navigator.clipboard.writeText(text);
-    setMessage('Share text copied to clipboard.');
+    setMessage('Score copied to clipboard.');
   } catch (error) {
-    setMessage('Copy failed. You can manually copy from the modal text below.');
-    elements.resultSummary.textContent = `${elements.resultSummary.textContent}\n\n${text}`;
+    setMessage('Copy failed. You can copy the score manually.');
   }
 }
 
@@ -351,10 +459,13 @@ function endGame(isWin) {
   toggleControls(false);
 
   const secret = state.secretOps.map((step) => `[${step.op}${step.value}]`).join(' ');
-  elements.resultTitle.textContent = isWin ? 'TensorPing Solved' : 'TensorPing Complete';
+  elements.resultTitle.textContent = isWin ? 'SYSTEM BREACH SUCCESSFUL' : 'SYSTEM LOCKOUT';
   elements.resultSummary.textContent = isWin
-    ? `You solved it in ${state.actionsUsed}/${MAX_ACTIONS} actions.`
-    : `Out of actions. Daily sequence: ${secret}`;
+    ? 'Encryption key retrieved and decoded.'
+    : 'Maximum attempts exceeded. Daily sequence encrypted.';
+    
+  elements.resultActions.textContent = `${state.actionsUsed}/${MAX_ACTIONS}`;
+  elements.resultSequence.textContent = secret;
 
   if (!elements.modal.open) {
     elements.modal.showModal();
