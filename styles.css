@@ -388,6 +388,16 @@ h1, h2, h3 {
   gap: var(--space-xs);
 }
 
+.history-placeholder {
+  padding: var(--space-sm);
+  text-align: center;
+  color: var(--on-surface-variant);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  opacity: 0.6;
+}
+
 .history-row {
   display: flex;
   align-items: center;

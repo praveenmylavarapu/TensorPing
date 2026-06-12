@@ -117,7 +117,17 @@ function updateCountdown() {
   }
 }
 
-function getDateKey(date = new Date()) {
+function getOffsetDate() {
+  const date = new Date();
+  const urlParams = new URLSearchParams(window.location.search);
+  const dayOffset = Number(urlParams.get('dayOffset')) || 0;
+  if (dayOffset !== 0) {
+    date.setDate(date.getDate() + dayOffset);
+  }
+  return date;
+}
+
+function getDateKey(date = getOffsetDate()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -195,7 +205,7 @@ async function handlePulse() {
   addHistoryRow(pulseEntry);
 
   elements.finalOutput.textContent = String(finalValue);
-  setMessage('Signal returned! Scan details logged');
+  setMessage('Signal returned! Scan details logged.');
   endAction();
 }
 
@@ -311,13 +321,13 @@ function getFeedbackMessage(feedback) {
   const presentCount = feedback.filter((status) => status === 'present').length;
 
   if (correctCount === 2) {
-    return 'So close! I can hear the mainframe sweating!';
+    return 'So close! I can hear the mainframe sweating.';
   }
   if (correctCount === 1 && presentCount === 2) {
-    return 'You have all the right operations! Just shuffle their positions!';
+    return 'You have all the right operations! Just shuffle their positions.';
   }
   if (correctCount === 0 && presentCount === 3) {
-    return 'Oh, the irony! All the right keys, but in all the wrong locks!';
+    return 'Oh, the irony! All the right keys, but in all the wrong locks.';
   }
   if (correctCount === 0 && presentCount === 0) {
     return 'Absolute void. Are we even hacking the same network?';
@@ -326,12 +336,17 @@ function getFeedbackMessage(feedback) {
     return 'A flicker of connection! We\'re breaking through!';
   }
   if (presentCount > 0) {
-    return 'Faint echoes. Frequencies exist but in the wrong order';
+    return 'Faint echoes. Frequencies exist but in the wrong order.';
   }
-  return 'Guess accepted. Keep deducing, agent!';
+  return 'Guess accepted. Keep deducing, agent.';
 }
 
 function addHistoryRow(entry) {
+  const placeholder = elements.historyList.querySelector('.history-placeholder');
+  if (placeholder) {
+    placeholder.remove();
+  }
+
   const row = document.createElement('div');
   row.className = 'history-row';
 
@@ -365,7 +380,7 @@ function addHistoryRow(entry) {
 
 function canUseAction() {
   if (state.isGameOver) {
-    setMessage('Game over. Start again tomorrow for a new puzzle', false);
+    setMessage('Game over. Start again tomorrow for a new puzzle.', false);
     return false;
   }
   if (state.isAnimating) return false;
@@ -463,7 +478,7 @@ function wait(ms) {
 
 function getPuzzleNumber() {
   const base = new Date(2026, 6, 12);
-  const now = new Date();
+  const now = getOffsetDate();
   const msPerDay = 24 * 60 * 60 * 1000;
   return Math.max(1, Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - base) / msPerDay) + 1);
 }
@@ -497,7 +512,7 @@ async function shareScore() {
     await navigator.clipboard.writeText(text);
     setMessage('Score copied to clipboard');
   } catch (error) {
-    setMessage('Copy failed. You can copy the score manually');
+    setMessage('Copy failed. You can copy the score manually.');
   }
 }
 
