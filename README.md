@@ -14,6 +14,6 @@ This repository is configured for automatic GitHub Pages deployment with GitHub 
 ### Deploy flow
 
 - Push to the `main` branch.
-- The workflow at `/home/runner/work/TensorPing/TensorPing/praveenmylavarapu/TensorPing/.github/workflows/deploy-pages.yml` publishes the site.
+- The workflow at `.github/workflows/deploy-pages.yml` publishes the site.
 - After deployment, the app is available at:
   `https://praveenmylavarapu.github.io/TensorPing/`
