@@ -320,7 +320,7 @@ function wait(ms) {
 }
 
 function getPuzzleNumber() {
-  const base = new Date(2026, 0, 1);
+  const base = new Date(2026, 6, 12);
   const now = new Date();
   const msPerDay = 24 * 60 * 60 * 1000;
   return Math.max(1, Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - base) / msPerDay) + 1);
