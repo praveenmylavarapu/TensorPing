@@ -49,6 +49,7 @@ const state = {
   actionsUsed: 0,
   isAnimating: false,
   isGameOver: false,
+  isWin: false,
   history: [],
   pulseObservations: [],
   dailyKey: getDateKey(),
@@ -168,6 +169,12 @@ async function handlePulse() {
     return;
   }
 
+  const alreadyObserved = state.pulseObservations.some((obs) => obs.input === inputValue);
+  if (alreadyObserved) {
+    setMessage(`Value ${inputValue} has already been pulsed.`, true);
+    return;
+  }
+
   beginAction();
   setMessage('Pulse launched...');
   elements.finalOutput.textContent = '...';
@@ -280,13 +287,38 @@ function handleGuessSubmit() {
 
   const solved = feedback.every((status) => status === 'correct');
   if (solved) {
-    setMessage('Network solved.');
+    setMessage('System breached.');
     endGame(true);
     return;
   }
 
-  setMessage('Guess accepted. Keep deducing.');
+  setMessage(getFeedbackMessage(feedback));
   endAction();
+}
+
+function getFeedbackMessage(feedback) {
+  const correctCount = feedback.filter((status) => status === 'correct').length;
+  const presentCount = feedback.filter((status) => status === 'present').length;
+  
+  if (correctCount === 2) {
+    return 'So close! I can hear the mainframe sweating.';
+  }
+  if (correctCount === 1 && presentCount === 2) {
+    return 'You have all the right operations! Just shuffle their positions.';
+  }
+  if (correctCount === 0 && presentCount === 3) {
+    return 'Oh, the irony! All the right keys, but in all the wrong locks.';
+  }
+  if (correctCount === 0 && presentCount === 0) {
+    return 'Oof. Absolute void. Are we even hacking the same network?';
+  }
+  if (correctCount === 1) {
+    return 'A flicker of connection! We\'re breaking through.';
+  }
+  if (presentCount > 0) {
+    return 'Faint echoes. Frequencies exist but in the wrong order.';
+  }
+  return 'Guess accepted. Keep deducing, agent.';
 }
 
 function addHistoryRow(entry) {
@@ -428,19 +460,24 @@ function getPuzzleNumber() {
 
 function buildShareText() {
   const historyLines = state.history.map((entry) => {
-    if (entry.type === 'pulse') return '⚡';
+    if (entry.type === 'pulse') return '⚡  ⚡  ⚡';
     return entry.feedback.map((status) => {
       if (status === 'correct') return '🟦';
       if (status === 'present') return '🟪';
       return '⬛';
-    }).join(' ');
+    }).join('  ');
   });
 
+  const actionsText = state.isWin ? `${state.actionsUsed}/${MAX_ACTIONS}` : `X/${MAX_ACTIONS}`;
+  const statusText = state.isWin ? '🔓 Breached' : '🔒 Locked Out';
+
   return [
-    `TensorPing #${getPuzzleNumber()}`,
-    `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`,
+    `TensorPing #${getPuzzleNumber()} - ${statusText}`,
+    `Actions: ${actionsText}`,
+    '',
     ...historyLines,
-    `Play at ${window.location.href}`
+    '',
+    `Play at ${window.location.href.split('?')[0]}`
   ].join('\n');
 }
 
@@ -456,6 +493,7 @@ async function shareScore() {
 
 function endGame(isWin) {
   state.isGameOver = true;
+  state.isWin = isWin;
   toggleControls(false);
 
   const secret = state.secretOps.map((step) => `[${step.op}${step.value}]`).join(' ');

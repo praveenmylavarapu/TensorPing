@@ -913,6 +913,25 @@ dialog h1, dialog h3 {
   color: var(--on-surface);
 }
 
+.modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  width: 100%;
+  margin-top: var(--space-xs);
+}
+
+.modal-actions .btn-primary {
+  flex: 2;
+  margin: 0;
+  padding: 10px;
+}
+
+.modal-actions .btn-secondary {
+  flex: 1;
+  margin: 0;
+  padding: 10px;
+}
+
 .next-puzzle-timer {
   display: flex;
   flex-direction: column;
