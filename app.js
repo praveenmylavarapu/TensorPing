@@ -31,6 +31,7 @@ const elements = {
   resultTitle: document.getElementById('result-title'),
   resultSummary: document.getElementById('result-summary'),
   resultActions: document.getElementById('result-actions'),
+  resultSequenceRow: document.getElementById('result-sequence-row'),
   resultSequence: document.getElementById('result-sequence'),
   shareBtn: document.getElementById('share-btn'),
   closeModalBtn: document.getElementById('close-modal-btn'),
@@ -528,7 +529,8 @@ function endGame(isWin) {
     : 'Maximum attempts exceeded<br>Daily sequence encrypted';
 
   elements.resultActions.textContent = `${state.actionsUsed}/${MAX_ACTIONS}`;
-  elements.resultSequence.textContent = secret;
+  elements.resultSequenceRow.hidden = !isWin;
+  elements.resultSequence.textContent = isWin ? secret : '—';
 
   if (!elements.modal.open) {
     elements.modal.showModal();
