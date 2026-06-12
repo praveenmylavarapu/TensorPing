@@ -100,7 +100,7 @@ function applyOperation(input, operation) {
 }
 
 function runSequence(input, sequence = state.secretOps) {
-  return sequence.reduce((total, operation) => applyOperation(total, operation), input);
+  return sequence.reduce((total, op) => applyOperation(total, op), input);
 }
 
 async function handlePulse() {
@@ -327,12 +327,12 @@ function getPuzzleNumber() {
 }
 
 function buildShareText() {
-  const rows = state.history.map((entry) => {
+  const historyLines = state.history.map((entry) => {
     if (entry.type === 'pulse') return '⚡';
     return entry.feedback.map((status) => FEEDBACK_TO_EMOJI[status]).join(' ');
   });
 
-  return [`TensorPing #${getPuzzleNumber()}`, `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`, ...rows, `Play at ${window.location.href}`].join('\n');
+  return [`TensorPing #${getPuzzleNumber()}`, `Actions: ${state.actionsUsed}/${MAX_ACTIONS}`, ...historyLines, `Play at ${window.location.href}`].join('\n');
 }
 
 async function shareScore() {
